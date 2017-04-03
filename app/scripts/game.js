@@ -6,6 +6,8 @@ $(document).ready(function() {
     autoResize: true
   }
   var stage = new PIXI.Container();
+
+
   var renderer = PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight, renderOptions);
   document.body.appendChild(renderer.view);
   renderer.view.style.position = "absolute";
@@ -40,14 +42,90 @@ $(document).ready(function() {
         cat.vx = 0;
       }
     };
+    //Up
+   up.press = function() {
+     cat.vy = -5;
+   };
+   up.release = function() {
+     if (!down.isDown) {
+       cat.vy = 0;
+     }
+   };
+   down.press = function() {
+        cat.vy = 5;
+    };
+      down.release = function() {
+      if (!up.isDown) {
+          cat.vy = 0;
+      }
+      };
+    var emitter;
     var graphics = new PIXI.Graphics();
     stage.interactive = true;
     stage.containsPoint = () => true;
     stage.on('mousedown', function(mouseData) {
       //alert('click');
+      emitter = new PIXI.particles.Emitter(
+
+        // The PIXI.Container to put the emitter in
+        // if using blend modes, it's important to put this
+        // on top of a bitmap, and not use the root stage Container
+        stage,
+
+        // The collection of particle images to use
+        [PIXI.Texture.fromImage('images/soot.gif')],
+
+        // Emitter configuration, edit this to change the look
+        // of the emitter
+        {
+            alpha: {
+                start: 0.8,
+                end: 0.1
+            },
+            scale: {
+                start: 1,
+                end: 0.3
+            },
+            color: {
+                start: "fb1010",
+                end: "f5b830"
+            },
+            speed: {
+                start: 200,
+                end: 100
+            },
+            startRotation: {
+                min: 0,
+                max: 360
+            },
+            rotationSpeed: {
+                min: 0,
+                max: 0
+            },
+            lifetime: {
+                min: 0.5,
+                max: 0.5
+            },
+            frequency: 0.008,
+            emitterLifetime: 0.31,
+            maxParticles: 1000,
+            pos: {
+                x: mouseData.data.originalEvent.pageX,
+                y: mouseData.data.originalEvent.pageY
+            },
+            addAtBack: false,
+            spawnType: "circle",
+            spawnCircle: {
+                x: 0,
+                y: 0,
+                r: 10
+            }
+        }
+    );
       graphics.beginFill(0xe74c3c, .5);
       graphics.drawCircle(mouseData.data.originalEvent.pageX,mouseData.data.originalEvent.pageY,50);
       graphics.endFill();
+      emitter.emit = true;
     });
     /*graphics.beginFill(0xe74c3c, .5);
     graphics.drawCircle(100,100,50);
@@ -59,9 +137,16 @@ $(document).ready(function() {
     renderer.view.style.width = w + 'px';
     renderer.view.style.height = h + 'px';
   }
+  var elapsed = Date.now();
   requestAnimationFrame(animate);
   function animate() {
     requestAnimationFrame(animate);
+    var now = Date.now();
+    if (emitter) {
+				emitter.update((now - elapsed) * 0.001);
+      }
+
+    elapsed = now;
     cat.x += cat.vx;
     cat.y += cat.vy;
     renderer.render(stage);
